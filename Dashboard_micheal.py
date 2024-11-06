@@ -13,7 +13,6 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-server = app.server
 # Define data paths relative to the script's directory
 data_paths = {
     '2017': os.path.join(base_dir, 'data', '2017'),
@@ -43,7 +42,17 @@ def load_data(year):
     inventory_df = pd.read_csv(os.path.join(path, 'inventory_by_commodity.csv'))
     crop_processing_nitrogen_df = pd.read_csv(os.path.join(path, 'crop_processing_nitrogen.csv'))
     animal_stage_nitrogen_df = pd.read_csv(os.path.join(path, 'animal_stage_nitrogen.csv'))
+    # Rename columns in crop_processing_nitrogen_df
+    crop_processing_nitrogen_df.columns = [
+        col.replace("selfloop", "within_county") if col.startswith("selfloop") else col
+        for col in crop_processing_nitrogen_df.columns
+    ]
 
+    # Rename columns in animal_stage_nitrogen_df
+    animal_stage_nitrogen_df.columns = [
+        col.replace("selfloop", "within_county") if col.startswith("selfloop") else col
+        for col in animal_stage_nitrogen_df.columns
+    ]
     # Calculate total nitrogen loss for each DataFrame by summing specified columns
     crop_processing_nitrogen_df['total_nitrogen_loss'] = crop_processing_nitrogen_df[
         ['nitrogen_loss1', 'nitrogen_loss2']
@@ -66,8 +75,13 @@ def load_data(year):
 
 
 app.layout = html.Div([
-    html.H1("Tracking Nitrogen Impact in Chesapeake Bay's Food Production",
-            style={'textAlign': 'center', 'fontWeight': 'bold'}),
+    html.H1(
+        [
+            html.Span("Impacts of Future Scenarios on Nitrogen Loss from Agricultural Supply Chains", style={'display': 'block'}),
+            html.Span("in the Chesapeake Bay", style={'display': 'block'})
+        ],
+        style={'textAlign': 'center', 'fontWeight': 'bold'}
+    ),
     # Text with hyperlink on the word "paper"
     html.P([
         "The Dashboard has been modeled based on this ",
@@ -89,16 +103,16 @@ app.layout = html.Div([
     # Contents Section with bold text titles
     html.H2("Contents", style={'textAlign': 'center', 'fontWeight': 'bold', 'marginTop': '40px'}),
     html.Ul([
-        html.Li(html.Span("How Much is Nitrogen Loss in the Chesapeake Bay in Different Stages?",
+        html.Li(html.Span("In What Stage Is Nitrogen Lost in the Food and Animal Supply Chain?",
                           style={'fontWeight': 'bold', 'fontSize': '18px'})),
-        html.Li(html.Span("What is the Trade Behavior of Counties in Different Stages?",
+        html.Li(html.Span("Where Does Nitrogen Loss Occur in the Chesapeake Bay?",
                           style={'fontWeight': 'bold', 'fontSize': '18px'})),
-        html.Li(html.Span("How Much is the Area in Acres and Inventory Head in the Chesapeake Bay?",
+        html.Li(html.Span("What Are the Production Totals for Crops and Animals in the Chesapeake Bay?",
                           style={'fontWeight': 'bold', 'fontSize': '18px'}))
     ], style={'textAlign': 'center', 'listStyleType': 'none', 'padding': 0}),
 
     # Section 1: Nitrogen Loss
-    html.H2("How Much is Nitrogen Loss in the Chesapeake Bay in Different Stages?",
+    html.H2("In What Stage Is Nitrogen Lost in the Food and Animal Supply Chain?",
             id="nitrogen-loss", style={'textAlign': 'center', 'fontWeight': 'bold', 'marginTop': '40px'}),
     html.Div(id="chloropleth-maps"),
 
@@ -107,7 +121,7 @@ app.layout = html.Div([
     html.Div(id="nitrogen-loss-table", style={'width': '80%', 'margin': '0 auto'}),
 
     # Section 2: Trade Behavior
-    html.H2("What is the Trade Behavior of Counties in Different Stages?",
+    html.H2("Where Does Nitrogen Loss Occur in the Chesapeake Bay?",
             id="trade-behavior", style={'textAlign': 'center', 'fontWeight': 'bold', 'marginTop': '40px'}),
     html.Div(id="import-export-maps"),
 
@@ -115,7 +129,7 @@ app.layout = html.Div([
     html.Div(id="import-export-tables", style={'width': '80%', 'margin': '0 auto'}),
 
     # Section 3: Area and Inventory
-    html.H2("How Much is the Area in Acres and Inventory Head in the Chesapeake Bay?",
+    html.H2("What Are the Production Totals for Crops and Animals in the Chesapeake Bay?",
             id="area-inventory", style={'textAlign': 'center', 'fontWeight': 'bold', 'marginTop': '40px'}),
     html.Div(id="inventory-harvest-section")
 ], style={'padding': '20px'})
@@ -140,7 +154,7 @@ def update_dashboard(selected_year):
     maps = []
     for i, (col, label) in enumerate(nitrogen_loss_labels.items()):
         df = crop_df if i < 2 else animal_df
-        title = f"Nitrogen Loss {i + 1}: {label}"
+        title = f"Nitrogen Loss Stage {i + 1}: {label}"
         df[f"log_{col}"] = np.log1p(df[col])  # Log-transform the column for color scale
         fig = px.choropleth(
             df,
@@ -196,7 +210,7 @@ def update_dashboard(selected_year):
                    'nitrogen_loss7']].sum().sum() / 10 ** 6
     , 2)
     nitrogen_loss_table = pd.DataFrame({
-        "Nitrogen Loss ID": [f"Nitrogen Loss {i}" for i in range(1, 8)] + ["Total Nitrogen Loss"],
+        "Nitrogen Loss ID": [f"Nitrogen Loss Stage {i}" for i in range(1, 8)] + ["Total Nitrogen Loss"],
         "Nitrogen Loss Type": [label for _, label in nitrogen_loss_labels.items()] + ["Total Nitrogen Loss"],
         "Total (K Tons)": (
                 round(crop_df[['nitrogen_loss1', 'nitrogen_loss2']].sum().div(10 ** 6), 2).tolist() +
@@ -218,9 +232,9 @@ def update_dashboard(selected_year):
     stage_names = ["Crop Processing", "Animal Nitrogen", "Meat Nitrogen"]
     stage_dfs = [crop_df, animal_df, animal_df]
     stage_columns = [
-        ["import_crop_processing_nitrogen", "export_crop_processing_nitrogen", "selfloop_crop_processing_nitrogen"],
-        ["import_animal_nitrogen", "export_animal_nitrogen", "selfloop_animal_nitrogen"],
-        ["import_meat_nitrogen", "export_meat_nitrogen", "selfloop_meat_nitrogen"]
+        ["import_crop_processing_nitrogen", "export_crop_processing_nitrogen", "within_county_crop_processing_nitrogen"],
+        ["import_animal_nitrogen", "export_animal_nitrogen", "within_county_animal_nitrogen"],
+        ["import_meat_nitrogen", "export_meat_nitrogen", "within_county_meat_nitrogen"]
     ]
 
     import_export_sections = []
@@ -259,10 +273,17 @@ def update_dashboard(selected_year):
 
             stage_maps.append(dcc.Graph(figure=fig, style={'display': 'inline-block', 'width': '50%'}))
 
-        # Create table for each stage, grouped by commodity and summed
+        # Group by commodity and sum the specified columns
         table_data = stage_df.groupby("commodity")[[columns[0], columns[1], columns[2]]].sum().reset_index()
+
+        # Convert values to millions and round
         table_data[columns] = round(table_data[columns].div(10 ** 6), 2)
-        table_data.columns = ["Commodity", "Import (K Tons)", "Export (K Tons)", "Selfloop (K Tons)"]
+
+        # Format commodity names to title case and remove underscores
+        table_data["commodity"] = table_data["commodity"].str.title().str.replace('_', ' ')
+
+        # Rename columns for clarity
+        table_data.columns = ["Commodity", "Import (K Tons)", "Export (K Tons)", "Within County (K Tons)"]
 
         stage_table = dash_table.DataTable(
             data=table_data.to_dict("records"),
@@ -287,12 +308,21 @@ def update_dashboard(selected_year):
     area_df = area_df.round()
     inventory_df = inventory_df.round()
 
-    # Tables for Inventory and Harvested Area
+    # Apply formatting to the "Commodity" column in inventory_df
+    if "Commodity" in inventory_df.columns:
+        inventory_df["Commodity"] = inventory_df["Commodity"].str.title().str.replace("_", " ")
+
+    # Apply formatting to the "Commodity" column in area_df
+    if "Commodity" in area_df.columns:
+        area_df["Commodity"] = area_df["Commodity"].str.title().str.replace("_", " ")
+
+    # Create the Inventory table
     inventory_table = dash_table.DataTable(
         data=inventory_df.to_dict("records"),
         columns=[{"name": col, "id": col} for col in inventory_df.columns]
     )
 
+    # Create the Harvested Area table
     area_table = dash_table.DataTable(
         data=area_df.to_dict("records"),
         columns=[{"name": col, "id": col} for col in area_df.columns]
