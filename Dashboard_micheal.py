@@ -12,7 +12,7 @@ import os
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
+server = app.server
 # Define data paths relative to the script's directory
 data_paths = {
     '2017': os.path.join(base_dir, 'data', '2017'),
