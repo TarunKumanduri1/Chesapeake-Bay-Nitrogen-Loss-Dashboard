@@ -165,7 +165,7 @@ def update_dashboard(selected_year):
             hover_data={
                 col: True  # Show original (non-logarithmic) nitrogen loss
             },
-            labels={f"log_{col}": "Log Nitrogen Loss Stage"},
+            labels={f"log_{col}": "Log Nitrogen Loss"},
             title=title,
             color_continuous_scale="Viridis",
             scope="usa"
