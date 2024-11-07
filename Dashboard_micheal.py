@@ -257,11 +257,12 @@ def update_dashboard(selected_year):
                 hover_data={
                     col: True  # Show original (non-logarithmic) nitrogen loss
                 },
-                labels={f"log_{col}": "Log Nitrogen"},
                 title=f"{col.replace('_', ' ').title()} - {stage}",
                 color_continuous_scale="Viridis",
                 scope="usa"
             )
+            
+            fig.update_coloraxes(colorbar_title="Log Nitrogen")
 
             fig.update_layout(
                 title={'text': col.replace('_', ' ').title(), 'x': 0.5, 'xanchor': 'center'},
