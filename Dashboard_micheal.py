@@ -296,6 +296,13 @@ def update_dashboard(selected_year):
         import_export_sections.append(html.Div(children=stage_maps + [stage_table], style={'padding': '10px'}))
 
     # Inventory and area charts
+     # Apply formatting to the "Commodity" column in inventory_df
+    if "Commodity" in inventory_df.columns:
+        inventory_df["Commodity"] = inventory_df["Commodity"].str.title().str.replace("_", " ")
+
+    # Apply formatting to the "Commodity" column in area_df
+    if "Commodity" in area_df.columns:
+        area_df["Commodity"] = area_df["Commodity"].str.title().str.replace("_", " ")
     plasma_colors = px.colors.sequential.Viridis
     inventory_chart = px.pie(inventory_df, names="Commodity", values="Total Inventory (head)",
                              title="Inventory by Commodity")
@@ -307,14 +314,6 @@ def update_dashboard(selected_year):
     # Round values in area_df and inventory_df to 2 decimal places
     area_df = area_df.round()
     inventory_df = inventory_df.round()
-
-    # Apply formatting to the "Commodity" column in inventory_df
-    if "Commodity" in inventory_df.columns:
-        inventory_df["Commodity"] = inventory_df["Commodity"].str.title().str.replace("_", " ")
-
-    # Apply formatting to the "Commodity" column in area_df
-    if "Commodity" in area_df.columns:
-        area_df["Commodity"] = area_df["Commodity"].str.title().str.replace("_", " ")
 
     # Create the Inventory table
     inventory_table = dash_table.DataTable(
