@@ -165,7 +165,7 @@ def update_dashboard(selected_year):
             hover_data={
                 col: True  # Show original (non-logarithmic) nitrogen loss
             },
-            labels={f"log_{col}": "Log Nitrogen Loss Stage {i + 1}"},
+            labels={f"log_{col}": "Log Nitrogen Loss Stage"},
             title=title,
             color_continuous_scale="Viridis",
             scope="usa"
@@ -190,7 +190,7 @@ def update_dashboard(selected_year):
         hover_data={
                 "total_nitrogen_loss": True  # Show original (non-logarithmic) nitrogen loss
             },
-        labels={f"log_{col}": "Log Nitrogen Loss"},
+        labels={f"log_total_nitrogen_loss": "Log Nitrogen Loss"},
         title="Total Nitrogen Loss by County",
         color_continuous_scale="Viridis",
         scope="usa"
