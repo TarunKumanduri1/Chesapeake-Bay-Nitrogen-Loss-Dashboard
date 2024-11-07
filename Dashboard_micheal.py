@@ -262,7 +262,6 @@ def update_dashboard(selected_year):
                 scope="usa"
             )
             
-            fig.update_coloraxes(colorbar_title="Log Nitrogen")
 
             fig.update_layout(
                 title={'text': col.replace('_', ' ').title(), 'x': 0.5, 'xanchor': 'center'},
@@ -272,7 +271,7 @@ def update_dashboard(selected_year):
             )
 
             # Set legend title to log_nitrogen
-            fig.update_coloraxes(colorbar_title="log_nitrogen")
+            fig.update_coloraxes(colorbar_title="Log Nitrogen")
             fig.update_geos(fitbounds="locations")
 
             stage_maps.append(dcc.Graph(figure=fig, style={'display': 'inline-block', 'width': '50%'}))
