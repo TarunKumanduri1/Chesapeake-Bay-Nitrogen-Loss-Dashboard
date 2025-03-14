@@ -404,3 +404,5 @@ def update_dashboard(selected_year):
 
 if __name__ == "__main__":
     app.run_server(debug=True)
+
+server = app.server  
